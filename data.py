@@ -8,6 +8,9 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import csv
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+import pdb
 
 def load_mnist_data(dir_path, n_sample_source = 1000, n_sample_targets = 50, n_sample_test = 200, time_length = 5):
 
@@ -145,6 +148,118 @@ def load_battery_data_random(n_samples_source = 67, n_samples_targets = 10, time
         yt.append(y1)
     
     return Xs, ys, Xt, yt, Xt_all, yt_all
+
+def load_battery_data_split(n_samples_source = 67, n_samples_targets = 10, time_series = [], shuffle_or_not = True, random_seed = 1, train_set = 20):
+    dir = '/Users/liuhanbing/Desktop/code/out_SOC_005-075_excel/'
+    s_val = pd.read_excel(dir + 'out-SOC-005.xlsx', engine='openpyxl').values
+    s_cnt = n_samples_source if n_samples_source <= s_val.shape[0] else s_val.shape[0]
+    Xs = s_val[: s_cnt, 2 : 23].astype(np.float64)
+    ys = s_val[: s_cnt, 1].astype(np.float64)
+
+    s_val = pd.read_excel(dir + 'out-SOC-010.xlsx', engine='openpyxl').values
+    x1 = s_val[:train_set, 2 : 23].astype(np.float64)
+    y1 = np.ones((train_set, )) * 10
+    xt1 = s_val[train_set:, 2 : 23].astype(np.float64)
+    yt1_value = s_val[train_set:, 1].astype(np.float64)
+    yt1 = np.ones((xt1.shape[0], )) * 10
+
+    s_val = pd.read_excel(dir + 'out-SOC-015.xlsx', engine='openpyxl').values
+    x2 = s_val[:train_set, 2 : 23].astype(np.float64)
+    y2 = np.ones((train_set, )) * 15
+    xt2 = s_val[train_set:, 2 : 23].astype(np.float64)
+    yt2_value = s_val[train_set:, 1].astype(np.float64)
+    yt2 = np.ones((xt2.shape[0], )) * 15
+
+    s_val = pd.read_excel(dir + 'out-SOC-020.xlsx', engine='openpyxl').values
+    x3 = s_val[:train_set, 2 : 23].astype(np.float64)
+    y3 = np.ones((train_set, )) * 20
+    xt3 = s_val[train_set:, 2 : 23].astype(np.float64)
+    yt3_value = s_val[train_set:, 1].astype(np.float64)
+    yt3 = np.ones((xt3.shape[0], )) * 20
+
+    s_val = pd.read_excel(dir + 'out-SOC-025.xlsx', engine='openpyxl').values
+    x4 = s_val[:train_set, 2 : 23].astype(np.float64)
+    y4 = np.ones((train_set, )) * 25
+    xt4 = s_val[train_set:, 2 : 23].astype(np.float64)
+    yt4_value = s_val[train_set:, 1].astype(np.float64)
+    yt4 = np.ones((xt4.shape[0], )) * 25
+
+    s_val = pd.read_excel(dir + 'out-SOC-030.xlsx', engine='openpyxl').values
+    x5 = s_val[:train_set, 2 : 23].astype(np.float64)
+    y5 = np.ones((train_set, )) * 30
+    xt5 = s_val[train_set:, 2 : 23].astype(np.float64)
+    yt5_value = s_val[train_set:, 1].astype(np.float64)
+    yt5 = np.ones((xt5.shape[0], )) * 30
+
+    s_val = pd.read_excel(dir + 'out-SOC-035.xlsx', engine='openpyxl').values
+    x6 = s_val[:train_set, 2 : 23].astype(np.float64)
+    y6 = np.ones((train_set, )) * 35
+    xt6 = s_val[train_set:, 2 : 23].astype(np.float64)
+    yt6_value = s_val[train_set:, 1].astype(np.float64)
+    yt6 = np.ones((xt6.shape[0], )) * 35
+
+    s_val = pd.read_excel(dir + 'out-SOC-040.xlsx', engine='openpyxl').values
+    x7 = s_val[:train_set, 2 : 23].astype(np.float64)
+    y7 = np.ones((train_set, )) * 40
+    xt7 = s_val[train_set:, 2 : 23].astype(np.float64)
+    yt7_value = s_val[train_set:, 1].astype(np.float64)
+    yt7 = np.ones((xt3.shape[0], )) * 40
+
+    s_val = pd.read_excel(dir + 'out-SOC-045.xlsx', engine='openpyxl').values
+    x8 = s_val[:train_set, 2 : 23].astype(np.float64)
+    y8 = np.ones((train_set, )) * 45
+    xt8 = s_val[train_set:, 2 : 23].astype(np.float64)
+    yt8_value = s_val[train_set:, 1].astype(np.float64)
+    yt8 = np.ones((xt8.shape[0], )) * 45
+
+    s_val = pd.read_excel(dir + 'out-SOC-050.xlsx', engine='openpyxl').values
+    x9 = s_val[:train_set, 2 : 23].astype(np.float64)
+    y9 = np.ones((train_set, )) * 50
+    xt9 = s_val[train_set:, 2 : 23].astype(np.float64)
+    yt9_value = s_val[train_set:, 1].astype(np.float64)
+    yt9 = np.ones((xt9.shape[0], )) * 50
+
+    x = np.concatenate((x1, x2, x3, x4, x5, x6, x7, x8, x9))
+    y = np.concatenate((y1, y2, y3, y4, y5, y6, y7, y8, y9))
+
+    xt0 = np.concatenate((xt1, xt2, xt3, xt4, xt5, xt6, xt7, xt8, xt9))
+    yt0 = np.concatenate((yt1, yt2, yt3, yt4, yt5, yt6, yt7, yt8, yt9))
+    yt_value = np.concatenate((yt1_value, yt2_value, yt3_value, yt4_value, yt5_value, yt6_value, yt7_value, yt8_value, yt9_value))
+
+    knn = KNeighborsClassifier(n_neighbors=2)  
+    knn.fit(x, y)
+    y_pred = knn.predict(xt0)
+    acc = accuracy_score(yt0, y_pred)
+    # print("soc prediction score: ", acc)
+
+    Xt = []
+    yt = []
+    Xt_all = []
+    yt_all = []
+    for i in time_series:
+
+        Xt_true = xt0[yt0 == i]
+        yt_true = yt_value[yt0 == i]
+        Xt_all.append(Xt_true)
+        yt_all.append(yt_true)
+
+        Xt_predict = xt0[y_pred == i]
+        yt_predict = yt_value[y_pred == i]
+        rand = np.arange(Xt_predict.shape[0])
+        if shuffle_or_not:
+            np.random.seed(random_seed * i)
+            np.random.shuffle(rand)
+            # print(rand)
+        
+        t_cnt = n_samples_targets
+        X1 = Xt_predict[rand[: t_cnt]]
+        y1 = yt_predict[rand[: t_cnt]]
+
+        Xt.append(X1)
+        yt.append(y1)
+
+    return Xs, ys, Xt, yt, Xt_all, yt_all, acc
+
     
 
 def load_seq_two_moon_data(n_samples_source, n_samples_targets, time_length, noise=.1, max_angle=90):
@@ -176,6 +291,7 @@ Xs, ys, Xt, yt, angles = load_seq_two_moon_data(150, 150, 10,
                                                     max_angle=90, noise=0.1)
 Xs1, ys1, Xt1, yt1, Xt_all, yt_all = load_battery_data()
 Xs2, ys2, Xt2, yt2, Xtest, ytest = load_mnist_data(dir_path='/Users/liuhanbing/Desktop/code/RotNIST/data/')
+Xs, ys, Xt, yt, Xt_all, yt_all, acc = load_battery_data_split(time_series=[10, 15, 20, 25, 30, 35, 40, 45, 50])
 # print(Xtest[0].shape)
 
 # print(ys.shape)

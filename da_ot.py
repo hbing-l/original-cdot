@@ -1,3 +1,4 @@
+from telnetlib import GA
 import numpy as np
 import ot
 from BFB import *
@@ -48,6 +49,10 @@ class DAClassifier:
     def grad_entropic_reg(self, Gamma):
         _grad_entropic_reg = np.log(Gamma)
         return _grad_entropic_reg
+    
+    def entropic_reg(self, Gamma):
+        entropic_reg = np.sum(Gamma * np.log(Gamma) - Gamma)
+        return entropic_reg
     
     ## --------------- ##
     ## Time regulizer ## 
