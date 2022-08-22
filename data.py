@@ -232,10 +232,14 @@ def load_battery_data_split(n_samples_source = 67, n_samples_targets = 10, time_
     acc = accuracy_score(yt0, y_pred)
     # print("soc prediction score: ", acc)
 
-    Xt = []
-    yt = []
+    Xt_clf = []
+    yt_clf = []
     Xt_all = []
     yt_all = []
+
+    Xt_ = []
+    yt_ = []
+
     for i in time_series:
 
         Xt_true = xt0[yt0 == i]
@@ -255,10 +259,21 @@ def load_battery_data_split(n_samples_source = 67, n_samples_targets = 10, time_
         X1 = Xt_predict[rand[: t_cnt]]
         y1 = yt_predict[rand[: t_cnt]]
 
-        Xt.append(X1)
-        yt.append(y1)
+        rand = np.arange(Xt_true.shape[0])
+        if shuffle_or_not:
+            np.random.seed(random_seed * i)
+            np.random.shuffle(rand)
 
-    return Xs, ys, Xt, yt, Xt_all, yt_all, acc
+        X2 = Xt_true[rand[: t_cnt]]
+        y2 = yt_true[rand[: t_cnt]]
+
+        Xt_clf.append(X1)
+        yt_clf.append(y1)
+
+        Xt_.append(X2)
+        yt_.append(y2)
+
+    return Xs, ys, Xt_clf, yt_clf, Xt_all, yt_all, acc, Xt_, yt_
 
     
 
@@ -291,7 +306,7 @@ Xs, ys, Xt, yt, angles = load_seq_two_moon_data(150, 150, 10,
                                                     max_angle=90, noise=0.1)
 Xs1, ys1, Xt1, yt1, Xt_all, yt_all = load_battery_data()
 Xs2, ys2, Xt2, yt2, Xtest, ytest = load_mnist_data(dir_path='/Users/liuhanbing/Desktop/code/RotNIST/data/')
-Xs, ys, Xt, yt, Xt_all, yt_all, acc = load_battery_data_split(time_series=[10, 15, 20, 25, 30, 35, 40, 45, 50])
+Xs, ys, Xt, yt, Xt_all, yt_all, acc, _, _ = load_battery_data_split(time_series=[10, 15, 20, 25, 30, 35, 40, 45, 50])
 # print(Xtest[0].shape)
 
 # print(ys.shape)
