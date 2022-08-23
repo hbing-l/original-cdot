@@ -16,9 +16,10 @@ from sklearn import svm
 from sklearn import tree
 import random
 import ot
+import pdb
 
 def test_cdot_methods(methods, time_reg_vector, n_samples_source, n_samples_targets,
-                      time_length, time_series, sort_method, methods_names=None, cost="seq",
+                      time_length, time_series, sort_method, if_sort, methods_names=None, cost="seq",
                       fig_name=None, plot_mapping=False, random_seed = 0):
     
     # Xs, ys, Xt, yt, Xt_all, yt_all = load_battery_data(n_samples_source, n_samples_targets, time_length, True)
@@ -26,17 +27,28 @@ def test_cdot_methods(methods, time_reg_vector, n_samples_source, n_samples_targ
     Xs, ys, Xt, yt, Xt_all, yt_all, acc, Xt_true, yt_true = load_battery_data_split(n_samples_source, n_samples_targets, time_series, shuffle_or_not = True, random_seed = random_seed, train_set = 20)
 
     if sort_method == 'w_dis':
-        w_dist = []
-        for x in Xt_true:
-            m = ot.dist(Xs, x, metric='euclidean')
-            m /= m.max()
-            n1 = Xs.shape[0]
-            n2 = x.shape[0]
-            a, b = np.ones((n1,)) / n1, np.ones((n2,)) / n2
-            c = ot.sinkhorn2(a, b, m, 1)
-            w_dist.append(c)
-        Xt = [x for _, x in sorted(zip(w_dist, Xt_true), key=lambda x1: x1[0])]
-        yt = [x for _, x in sorted(zip(w_dist, yt_true), key=lambda x1: x1[0])]
+        if if_sort == 1:
+            w_dist = []
+            for x in Xt_true:
+                m = ot.dist(Xs, x, metric='euclidean')
+                m /= m.max()
+                n1 = Xs.shape[0]
+                n2 = x.shape[0]
+                a, b = np.ones((n1,)) / n1, np.ones((n2,)) / n2
+                c = ot.sinkhorn2(a, b, m, 1)
+                w_dist.append(c)
+            Xt = [x for _, x in sorted(zip(w_dist, Xt_true), key=lambda x1: x1[0])]
+            yt = [x for _, x in sorted(zip(w_dist, yt_true), key=lambda x1: x1[0])]
+
+        if if_sort == 0:
+            rand = np.arange(len(Xt)-1)
+            np.random.seed(random_seed)
+            np.random.shuffle(rand)
+            rand1 = np.append(rand, len(Xt)-1)
+
+            Xt = [x for _, x in sorted(zip(rand1, Xt_true), key=lambda x1: x1[0])]
+            yt = [x for _, x in sorted(zip(rand1, yt_true), key=lambda x1: x1[0])]
+
     
     if sort_method == 'soc':
         Xt = Xt_true
@@ -97,8 +109,9 @@ def test_cdot_methods(methods, time_reg_vector, n_samples_source, n_samples_targ
     return scores, losses, ots, time_reg, entropic_reg, acc
 
 if __name__ == '__main__':
-    sort_method = 'w_dis'
+    # sort_method = 'soc'
     # sort_method = 'clf'
+    sort_method = 'w_dis'
     data = []
     for t in range(8):
         # # of target and intermediate domains
@@ -190,7 +203,8 @@ if __name__ == '__main__':
                             plot_mapping=False,
                             cost=c,
                             random_seed = sd * (run+1),
-                            sort_method = sort_method
+                            sort_method = sort_method,
+                            if_sort=if_sort
                         )
                         run_scores.append(scores)
                         run_losses.append(losses)
