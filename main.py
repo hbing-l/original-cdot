@@ -109,9 +109,9 @@ def test_cdot_methods(methods, time_reg_vector, n_samples_source, n_samples_targ
     return scores, losses, ots, time_reg, entropic_reg, acc
 
 if __name__ == '__main__':
-    # sort_method = 'soc'
+    sort_method = 'soc'
     # sort_method = 'clf'
-    sort_method = 'w_dis'
+    # sort_method = 'w_dis'
     data = []
     for t in range(8):
         # # of target and intermediate domains
@@ -175,7 +175,7 @@ if __name__ == '__main__':
                     sorted_ot_series = unsorted_ot_series
                 
                 time = len(sorted_ot_series)
-                target = 10
+                target = 35
 
                 final_scores = np.zeros([len(cost), time])
                 final_losses = np.zeros([len(cost), time])
