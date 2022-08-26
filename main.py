@@ -1,11 +1,11 @@
 from os import times_result
 from random import random
-from typing import final
+# from typing import final
 import numpy as np
 import pandas as pd
 # from torch import R
 from da_ot import OTGroupLassoDAClassifier, OTBFBDAClassifier
-from data import Xt_all, load_battery_data, load_battery_data_random, load_battery_data_split
+from data import Xt_all, load_battery_data_split
 from plot import plot_continuous_domain_adaptation, plot_accuracies
 
 from sklearn import ensemble
@@ -24,7 +24,7 @@ def test_cdot_methods(methods, time_reg_vector, n_samples_source, n_samples_targ
     
     # Xs, ys, Xt, yt, Xt_all, yt_all = load_battery_data(n_samples_source, n_samples_targets, time_length, True)
     # Xs, ys, Xt, yt, Xt_all, yt_all = load_battery_data_random(n_samples_source, n_samples_targets, time_series, shuffle_or_not = True, random_seed = random_seed)
-    Xs, ys, Xt, yt, Xt_all, yt_all, acc, Xt_true, yt_true = load_battery_data_split(n_samples_source, n_samples_targets, time_series, shuffle_or_not = True, random_seed = random_seed, train_set = 20)
+    Xs, ys, Xt, yt, Xt_all, yt_all, acc, Xt_true, yt_true, Xt_random, yt_random = load_battery_data_split(n_samples_source, n_samples_targets, time_series, shuffle_or_not = True, random_seed = random_seed, train_set = 20)
 
     if sort_method == 'w_dis':
         if if_sort == 1:
@@ -175,7 +175,7 @@ if __name__ == '__main__':
                     sorted_ot_series = unsorted_ot_series
                 
                 time = len(sorted_ot_series)
-                target = 35
+                target = 30
 
                 final_scores = np.zeros([len(cost), time])
                 final_losses = np.zeros([len(cost), time])
