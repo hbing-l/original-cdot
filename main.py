@@ -27,9 +27,16 @@ def test_cdot_methods(methods, time_reg_vector, n_samples_source, n_samples_targ
     Xs, ys, Xt, yt, Xt_all, yt_all, acc, Xt_true, yt_true, Xt_random, yt_random = load_battery_data_split(n_samples_source, n_samples_targets, time_series, shuffle_or_not = True, random_seed = random_seed, train_set = 20)
 
     if sort_method == 'w_dis':
+        Xs, ys, Xt_w, yt_w, Xt_all, yt_all, acc, Xt_true_w, yt_true_w, _, _ = load_battery_data_split(n_samples_source, n_samples_targets, time_series, shuffle_or_not = True, random_seed = random_seed + 1000, train_set = 20)
+        Xt_true_w.pop()
+        yt_true_w.pop()
+
+        Xt_w.pop()
+        yt_w.pop()
+
         if if_sort == 1:
             w_dist = []
-            for x in Xt_true:
+            for x in Xt_true_w:
                 m = ot.dist(Xs, x, metric='euclidean')
                 m /= m.max()
                 n1 = Xs.shape[0]
@@ -37,23 +44,27 @@ def test_cdot_methods(methods, time_reg_vector, n_samples_source, n_samples_targ
                 a, b = np.ones((n1,)) / n1, np.ones((n2,)) / n2
                 c = ot.sinkhorn2(a, b, m, 1)
                 w_dist.append(c)
-            Xt = [x for _, x in sorted(zip(w_dist, Xt_true), key=lambda x1: x1[0])]
-            yt = [x for _, x in sorted(zip(w_dist, yt_true), key=lambda x1: x1[0])]
+            Xt = [x for _, x in sorted(zip(w_dist, Xt_true_w), key=lambda x1: x1[0])]
+            yt = [x for _, x in sorted(zip(w_dist, yt_true_w), key=lambda x1: x1[0])]
 
         if if_sort == 0:
             rand = np.arange(len(Xt)-1)
             np.random.seed(random_seed)
             np.random.shuffle(rand)
-            rand1 = np.append(rand, len(Xt)-1)
+            Xt = [x for _, x in sorted(zip(rand, Xt_true_w), key=lambda x1: x1[0])]
+            yt = [x for _, x in sorted(zip(rand, yt_true_w), key=lambda x1: x1[0])]
 
-            Xt = [x for _, x in sorted(zip(rand1, Xt_true), key=lambda x1: x1[0])]
-            yt = [x for _, x in sorted(zip(rand1, yt_true), key=lambda x1: x1[0])]
-
+        Xt.append(Xt_true[-1])
+        yt.append(yt_true[-1])
     
     if sort_method == 'soc':
         Xt = Xt_true
         yt = yt_true
-        
+    
+    if sort_method == 'random':
+        Xt = Xt_random
+        yt = yt_random
+    
     mapped_samples = []
     time_reg = []
     entropic_reg = []
@@ -109,9 +120,10 @@ def test_cdot_methods(methods, time_reg_vector, n_samples_source, n_samples_targ
     return scores, losses, ots, time_reg, entropic_reg, acc
 
 if __name__ == '__main__':
-    sort_method = 'soc'
+    # sort_method = 'soc'
     # sort_method = 'clf'
-    # sort_method = 'w_dis'
+    sort_method = 'w_dis'
+    # sort_method = 'random'
     data = []
     for t in range(8):
         # # of target and intermediate domains
@@ -175,7 +187,7 @@ if __name__ == '__main__':
                     sorted_ot_series = unsorted_ot_series
                 
                 time = len(sorted_ot_series)
-                target = 30
+                target = 10
 
                 final_scores = np.zeros([len(cost), time])
                 final_losses = np.zeros([len(cost), time])

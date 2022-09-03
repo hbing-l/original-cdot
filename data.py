@@ -77,7 +77,7 @@ def load_mnist_data(dir_path, n_sample_source = 1000, n_sample_targets = 50, n_s
     
 
 def load_battery_data(n_samples_source = 67, n_samples_targets = 10, time_length = 4, shuffle_or_not = False):
-    dir = '/home/hanbingliu/out_SOC_005-075_excel/'
+    dir = '/Users/liuhanbing/Desktop/code/out_SOC_005-075_excel/'
     s_val = pd.read_excel(dir + 'out-SOC-005.xlsx', engine='openpyxl').values
     s_cnt = n_samples_source if n_samples_source <= s_val.shape[0] else s_val.shape[0]
     Xs = s_val[: s_cnt, 2 : 23].astype(np.float64)
@@ -115,7 +115,7 @@ def load_battery_data(n_samples_source = 67, n_samples_targets = 10, time_length
     return Xs, ys, Xt, yt, Xt_all, yt_all
 
 def load_battery_data_random(n_samples_source = 67, n_samples_targets = 10, time_series = [], shuffle_or_not = True, random_seed = 0):
-    dir = '/home/hanbingliu/out_SOC_005-075_excel/'
+    dir = '/Users/liuhanbing/Desktop/code/out_SOC_005-075_excel/'
     s_val = pd.read_excel(dir + 'out-SOC-005.xlsx', engine='openpyxl').values
     s_cnt = n_samples_source if n_samples_source <= s_val.shape[0] else s_val.shape[0]
     Xs = s_val[: s_cnt, 2 : 23].astype(np.float64)
@@ -150,7 +150,7 @@ def load_battery_data_random(n_samples_source = 67, n_samples_targets = 10, time
     return Xs, ys, Xt, yt, Xt_all, yt_all
 
 def load_battery_data_split(n_samples_source = 67, n_samples_targets = 10, time_series = [], shuffle_or_not = True, random_seed = 1, train_set = 20):
-    dir = '/home/hanbingliu/out_SOC_005-075_excel/'
+    dir = '/Users/liuhanbing/Desktop/code/out_SOC_005-075_excel/'
     s_val = pd.read_excel(dir + 'out-SOC-005.xlsx', engine='openpyxl').values
     s_cnt = n_samples_source if n_samples_source <= s_val.shape[0] else s_val.shape[0]
     Xs = s_val[: s_cnt, 2 : 23].astype(np.float64)
@@ -254,7 +254,7 @@ def load_battery_data_split(n_samples_source = 67, n_samples_targets = 10, time_
         yt_predict = yt_value[y_pred == i]
         rand = np.arange(Xt_predict.shape[0])
         if shuffle_or_not:
-            np.random.seed(random_seed * i)
+            np.random.seed(random_seed * i + 1)
             np.random.shuffle(rand)
             # print(rand)
         
@@ -277,6 +277,12 @@ def load_battery_data_split(n_samples_source = 67, n_samples_targets = 10, time_
         
         X3 = xt0[rand[: t_cnt]]
         y3 = yt_value[rand[: t_cnt]]
+
+        if i == time_series[-1]:
+            X3 = X2
+            y3 = y2
+            X1 = X2
+            y1 = y2
 
         Xt_clf.append(X1)
         yt_clf.append(y1)

@@ -42,7 +42,7 @@ class DAClassifier:
                 break
             except:
                 attempt_count += 1
-
+        
         Xs_mapped = self.adapt_source_to_target()
         self.clf.fit(Xs_mapped, self.ys)
 
