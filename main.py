@@ -120,9 +120,9 @@ def test_cdot_methods(methods, time_reg_vector, n_samples_source, n_samples_targ
     return scores, losses, ots, time_reg, entropic_reg, acc
 
 if __name__ == '__main__':
-    # sort_method = 'soc'
+    sort_method = 'soc'
     # sort_method = 'clf'
-    sort_method = 'w_dis'
+    # sort_method = 'w_dis'
     # sort_method = 'random'
     data = []
     for t in range(8):
@@ -268,6 +268,6 @@ if __name__ == '__main__':
                     'var_direct': var_per_epoch_loss_direct, 'var_unorder': var_per_epoch_loss_unorder, 'var_order': var_per_epoch_loss_order})
 
     dataframe = pd.DataFrame(data)
-    dataframe.to_csv("soc_{}_{}.csv".format(sort_method, target), index=False, sep=',')    
+    dataframe.to_csv("soc_{}_sametarget_{}.csv".format(sort_method, target), index=False, sep=',')    
 
         
