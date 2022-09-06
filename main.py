@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 # from torch import R
 from da_ot import OTGroupLassoDAClassifier, OTBFBDAClassifier
-from data import Xt_all, load_battery_data_split
+from data import Xt_all, Xt_all_domain, load_battery_data_split
 from plot import plot_continuous_domain_adaptation, plot_accuracies
 
 from sklearn import ensemble
@@ -24,35 +24,91 @@ def test_cdot_methods(methods, time_reg_vector, n_samples_source, n_samples_targ
     
     # Xs, ys, Xt, yt, Xt_all, yt_all = load_battery_data(n_samples_source, n_samples_targets, time_length, True)
     # Xs, ys, Xt, yt, Xt_all, yt_all = load_battery_data_random(n_samples_source, n_samples_targets, time_series, shuffle_or_not = True, random_seed = random_seed)
-    Xs, ys, Xt, yt, Xt_all, yt_all, acc, Xt_true, yt_true, Xt_random, yt_random = load_battery_data_split(n_samples_source, n_samples_targets, time_series, shuffle_or_not = True, random_seed = random_seed, train_set = 20)
+    Xs, ys, Xt, yt, Xt_all, yt_all, acc, Xt_true, yt_true, Xt_random, yt_random, Xt_all_domain, yt_all_domain = load_battery_data_split(n_samples_source, n_samples_targets, time_series, shuffle_or_not = True, random_seed = random_seed, train_set = 20)
 
     if sort_method == 'w_dis':
-        Xs, ys, Xt_w, yt_w, Xt_all, yt_all, acc, Xt_true_w, yt_true_w, _, _ = load_battery_data_split(n_samples_source, n_samples_targets, time_series, shuffle_or_not = True, random_seed = random_seed + 1000, train_set = 20)
-        Xt_true_w.pop()
-        yt_true_w.pop()
+        m = ot.dist(Xs, Xt_true[-1], metric='euclidean')
+        m /= m.max()
+        n1 = Xs.shape[0]
+        n2 = Xt_true[-1].shape[0]
+        a, b = np.ones((n1,)) / n1, np.ones((n2,)) / n2
+        c_t = ot.sinkhorn2(a, b, m, 1)
 
-        Xt_w.pop()
-        yt_w.pop()
-
+        w_dist = []
+        for x in Xt_all_domain:
+            m = ot.dist(Xs, x, metric='euclidean')
+            m /= m.max()
+            n1 = Xs.shape[0]
+            n2 = x.shape[0]
+            a, b = np.ones((n1,)) / n1, np.ones((n2,)) / n2
+            c = ot.sinkhorn2(a, b, m, 1)
+            w_dist.append(c)
+        
+        t = time_length - 1
         if if_sort == 1:
-            w_dist = []
-            for x in Xt_true_w:
-                m = ot.dist(Xs, x, metric='euclidean')
-                m /= m.max()
-                n1 = Xs.shape[0]
-                n2 = x.shape[0]
-                a, b = np.ones((n1,)) / n1, np.ones((n2,)) / n2
-                c = ot.sinkhorn2(a, b, m, 1)
-                w_dist.append(c)
-            Xt = [x for _, x in sorted(zip(w_dist, Xt_w), key=lambda x1: x1[0])]
-            yt = [x for _, x in sorted(zip(w_dist, yt_w), key=lambda x1: x1[0])]
 
-        if if_sort == 0:
-            rand = np.arange(len(Xt)-1)
+            w_dist_min = []
+            Xt_min = []
+            yt_min = []
+            for i in range(len(w_dist)):
+                if w_dist[i] <= c_t:
+                    w_dist_min.append(w_dist[i])
+                    Xt_min.append(Xt_all_domain[i])
+                    yt_min.append(yt_all_domain[i])
+
+            
+            rand = np.arange(len(w_dist_min))
             np.random.seed(random_seed)
             np.random.shuffle(rand)
-            Xt = [x for _, x in sorted(zip(rand, Xt_w), key=lambda x1: x1[0])]
-            yt = [x for _, x in sorted(zip(rand, yt_w), key=lambda x1: x1[0])]
+
+            Xt1 = [x for _, x in sorted(zip(rand, Xt_min), key=lambda x1: x1[0])]
+            yt1 = [x for _, x in sorted(zip(rand, yt_min), key=lambda x1: x1[0])]
+            w1 = [x for _, x in sorted(zip(rand, w_dist_min), key=lambda x1: x1[0])]
+            
+            if t <= len(Xt1):
+                Xt1 = Xt1[:t]
+                yt1 = yt1[:t]
+                w1 = w1[:t]
+                Xt = [x for _, x in sorted(zip(w1, Xt1), key=lambda x1: x1[0])]
+                yt = [x for _, x in sorted(zip(w1, yt1), key=lambda x1: x1[0])]
+
+            else:
+                x_sample = []
+                y_sample = []
+                w_sample = []
+                for i in range(t - len(Xt1)):
+                    np.random.seed(1 * i)
+                    rand = np.random.choice(len(Xt1), 1)
+                    x_sample_per = np.array(Xt1[rand[0]])
+                    y_sample_per = np.array(yt1[rand[0]])
+                    w_sample_per = np.array(w1[rand[0]])
+                    
+                    x_sample.append(x_sample_per)
+                    y_sample.append(y_sample_per)
+                    w_sample.append(w_sample_per)
+
+                Xt1 = Xt1 + x_sample
+                yt1 = yt1 + y_sample
+                w1 = w1 + w_sample
+                
+                Xt = [x for _, x in sorted(zip(w1, Xt1), key=lambda x1: x1[0])]
+                yt = [x for _, x in sorted(zip(w1, yt1), key=lambda x1: x1[0])]
+
+        if if_sort == 0:
+
+            x_sample = []
+            y_sample = []
+            for i in range(t):
+                np.random.seed(1 * i)
+                rand = np.random.choice(len(Xt_all_domain), 1)
+                x_sample_per = np.array(Xt_all_domain[rand[0]])
+                y_sample_per = np.array(yt_all_domain[rand[0]])
+                
+                x_sample.append(x_sample_per)
+                y_sample.append(y_sample_per)
+
+                Xt = x_sample
+                yt = y_sample
 
         Xt.append(Xt_true[-1])
         yt.append(yt_true[-1])
@@ -137,7 +193,7 @@ if __name__ == '__main__':
 
         for if_sort in sort_or_not:
             print("----------- sort or not: {} ------------".format(if_sort))
-            N_RUNS = 10
+            N_RUNS = 1
 
             # clf = KNeighborsClassifier(n_neighbors=1)
             # clf = ensemble.RandomForestRegressor(n_estimators=4)
@@ -160,7 +216,7 @@ if __name__ == '__main__':
 
             clf_acc = []
 
-            for sd in range(100):
+            for sd in range(2):
                 print("#epoch {}".format(sd))
                 np.random.seed(sd)
                 # time = np.random.randint(1, 10)
@@ -268,6 +324,6 @@ if __name__ == '__main__':
                     'var_direct': var_per_epoch_loss_direct, 'var_unorder': var_per_epoch_loss_unorder, 'var_order': var_per_epoch_loss_order})
 
     dataframe = pd.DataFrame(data)
-    dataframe.to_csv("soc_{}_clf_sametarget_ssh_{}.csv".format(sort_method, target), index=False, sep=',')    
+    dataframe.to_csv("soc_{}_only_sametarget_ssh_{}_2.csv".format(sort_method, target), index=False, sep=',')    
 
         
