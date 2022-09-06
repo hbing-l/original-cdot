@@ -44,15 +44,15 @@ def test_cdot_methods(methods, time_reg_vector, n_samples_source, n_samples_targ
                 a, b = np.ones((n1,)) / n1, np.ones((n2,)) / n2
                 c = ot.sinkhorn2(a, b, m, 1)
                 w_dist.append(c)
-            Xt = [x for _, x in sorted(zip(w_dist, Xt_true_w), key=lambda x1: x1[0])]
-            yt = [x for _, x in sorted(zip(w_dist, yt_true_w), key=lambda x1: x1[0])]
+            Xt = [x for _, x in sorted(zip(w_dist, Xt_w), key=lambda x1: x1[0])]
+            yt = [x for _, x in sorted(zip(w_dist, yt_w), key=lambda x1: x1[0])]
 
         if if_sort == 0:
             rand = np.arange(len(Xt)-1)
             np.random.seed(random_seed)
             np.random.shuffle(rand)
-            Xt = [x for _, x in sorted(zip(rand, Xt_true_w), key=lambda x1: x1[0])]
-            yt = [x for _, x in sorted(zip(rand, yt_true_w), key=lambda x1: x1[0])]
+            Xt = [x for _, x in sorted(zip(rand, Xt_w), key=lambda x1: x1[0])]
+            yt = [x for _, x in sorted(zip(rand, yt_w), key=lambda x1: x1[0])]
 
         Xt.append(Xt_true[-1])
         yt.append(yt_true[-1])
@@ -120,9 +120,9 @@ def test_cdot_methods(methods, time_reg_vector, n_samples_source, n_samples_targ
     return scores, losses, ots, time_reg, entropic_reg, acc
 
 if __name__ == '__main__':
-    sort_method = 'soc'
+    # sort_method = 'soc'
     # sort_method = 'clf'
-    # sort_method = 'w_dis'
+    sort_method = 'w_dis'
     # sort_method = 'random'
     data = []
     for t in range(8):
@@ -142,7 +142,7 @@ if __name__ == '__main__':
             # clf = KNeighborsClassifier(n_neighbors=1)
             # clf = ensemble.RandomForestRegressor(n_estimators=4)
             # clf = Ridge(alpha=5)
-            clf = svm.SVR()
+            clf = svm.SVR(gamma='scale')
             # clf = tree.DecisionTreeRegressor()
 
 
@@ -214,7 +214,7 @@ if __name__ == '__main__':
                             n_samples_targets=target,
                             plot_mapping=False,
                             cost=c,
-                            random_seed = sd * (run+1),
+                            random_seed = (sd+1) * (run+1),
                             sort_method = sort_method,
                             if_sort=if_sort
                         )
@@ -268,6 +268,6 @@ if __name__ == '__main__':
                     'var_direct': var_per_epoch_loss_direct, 'var_unorder': var_per_epoch_loss_unorder, 'var_order': var_per_epoch_loss_order})
 
     dataframe = pd.DataFrame(data)
-    dataframe.to_csv("soc_{}_sametarget_{}.csv".format(sort_method, target), index=False, sep=',')    
+    dataframe.to_csv("soc_{}_clf_sametarget_ssh_{}.csv".format(sort_method, target), index=False, sep=',')    
 
         
