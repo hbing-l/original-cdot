@@ -245,13 +245,24 @@ def load_battery_data_split(n_samples_source = 67, n_samples_targets = 10, time_
     Xt_all_domain = []
     yt_all_domain = []
 
-    for i in [10, 15, 20, 25, 30, 35, 40, 45, 50]:
+    Xt_all_domain_mix = []
+    yt_all_domain_mix = []
+
+    time_all_list = [10, 15, 20, 25, 30, 35, 40, 45, 50]
+
+    for idx, i in enumerate(time_all_list):
 
         if i == time_series[-1]:
             continue
 
         Xt_true = xt0[yt0 == i]
         yt_true = yt_value[yt0 == i]
+
+        Xt_before = xt0[yt0 == time_all_list[idx - 1]] if idx > 0 else []
+        yt_before = yt_value[yt0 == time_all_list[idx - 1]] if idx > 0 else []
+
+        xt_after = xt0[yt0 == time_all_list[idx + 1]] if idx < len(time_all_list) - 1 else []
+        yt_after = yt_value[yt0 == time_all_list[idx + 1]] if idx < len(time_all_list) - 1 else []
         rand = np.arange(Xt_true.shape[0])
         if shuffle_or_not:
             np.random.seed(random_seed * i)
@@ -264,6 +275,73 @@ def load_battery_data_split(n_samples_source = 67, n_samples_targets = 10, time_
         Xt_all_domain.append(X)
         yt_all_domain.append(y)
 
+        if idx > 0 and idx < len(time_all_list) - 1:
+            t_cnt = int(n_samples_targets * 0.6)
+            t_before = int(n_samples_targets * 0.2)
+            t_after = int(n_samples_targets * 0.2)
+            rand1 = np.arange(Xt_true.shape[0])
+            rand2 = np.arange(Xt_before.shape[0])
+            rand3 = np.arange(xt_after.shape[0])
+
+            if shuffle_or_not:
+                np.random.seed(random_seed * i)
+                np.random.shuffle(rand1)
+                np.random.shuffle(rand2)
+                np.random.shuffle(rand3)
+            
+            x0 = Xt_true[rand1[:t_cnt]]
+            y0 = yt_true[rand1[:t_cnt]]
+            x1 = Xt_before[rand2[:t_before]]
+            y1 = yt_before[rand2[:t_before]]
+            x2 = xt_after[rand3[:t_after]]
+            y2 = yt_after[rand3[:t_after]]
+            X = np.concatenate((x0, x1, x2))
+            y = np.concatenate((y0, y1, y2))
+
+            Xt_all_domain_mix.append(X)
+            yt_all_domain_mix.append(y)
+        
+        elif idx == 0:
+            t_cnt = int(n_samples_targets * 0.6)
+            t_after = int(n_samples_targets * 0.4)
+            rand1 = np.arange(Xt_true.shape[0])
+            rand2 = np.arange(xt_after.shape[0])
+            
+            if shuffle_or_not:
+                np.random.seed(random_seed * i)
+                np.random.shuffle(rand1)
+                np.random.shuffle(rand2)
+            
+            x0 = Xt_true[rand1[:t_cnt]]
+            y0 = yt_true[rand1[:t_cnt]]
+            x1 = xt_after[rand2[:t_after]]
+            y1 = yt_after[rand2[:t_after]]
+            X = np.concatenate((x0, x1))
+            y = np.concatenate((y0, y1))
+
+            Xt_all_domain_mix.append(X)
+            yt_all_domain_mix.append(y)
+        
+        else:
+            t_cnt = int(n_samples_targets * 0.6)
+            t_before = int(n_samples_targets * 0.4)
+            rand1 = np.arange(Xt_true.shape[0])
+            rand2 = np.arange(Xt_before.shape[0])
+
+            if shuffle_or_not:
+                np.random.seed(random_seed * i)
+                np.random.shuffle(rand1)
+                np.random.shuffle(rand2)
+            
+            x0 = Xt_true[rand1[:t_cnt]]
+            y0 = yt_true[rand1[:t_cnt]]
+            x1 = Xt_before[rand2[:t_before]]
+            y1 = yt_before[rand2[:t_before]]
+            X = np.concatenate((x0, x1))
+            y = np.concatenate((y0, y1))
+
+            Xt_all_domain_mix.append(X)
+            yt_all_domain_mix.append(y)
 
     for i in time_series:
 
@@ -315,7 +393,7 @@ def load_battery_data_split(n_samples_source = 67, n_samples_targets = 10, time_
         Xt_random.append(X3)
         yt_random.append(y3) 
 
-    return Xs, ys, Xt_clf, yt_clf, Xt_all, yt_all, acc, Xt_, yt_, Xt_random, yt_random, Xt_all_domain, yt_all_domain
+    return Xs, ys, Xt_clf, yt_clf, Xt_all, yt_all, acc, Xt_, yt_, Xt_random, yt_random, Xt_all_domain, yt_all_domain, Xt_all_domain_mix, yt_all_domain_mix
 
 
 def load_seq_two_moon_data(n_samples_source, n_samples_targets, time_length, noise=.1, max_angle=90):
@@ -346,7 +424,7 @@ def rotate_2d(X, theta):
 Xs, ys, Xt, yt, angles = load_seq_two_moon_data(150, 150, 10, max_angle=90, noise=0.1)
 Xs1, ys1, Xt1, yt1, Xt_all, yt_all = load_battery_data()
 # Xs2, ys2, Xt2, yt2, Xtest, ytest = load_mnist_data(dir_path='/Users/liuhanbing/Desktop/code/RotNIST/data/')
-Xs, ys, Xt, yt, Xt_all, yt_all, acc, Xt_, yt_, Xt_random, yt_random, Xt_all_domain, yt_all_domain = load_battery_data_split(time_series=[10, 25, 30, 50])
+Xs, ys, Xt, yt, Xt_all, yt_all, acc, Xt_, yt_, Xt_random, yt_random, Xt_all_domain, yt_all_domain, _, _ = load_battery_data_split(time_series=[10, 25, 30, 50])
 # print(Xtest[0].shape)
 
 # print(ys.shape)

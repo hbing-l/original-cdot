@@ -24,9 +24,13 @@ def test_cdot_methods(methods, time_reg_vector, n_samples_source, n_samples_targ
     
     # Xs, ys, Xt, yt, Xt_all, yt_all = load_battery_data(n_samples_source, n_samples_targets, time_length, True)
     # Xs, ys, Xt, yt, Xt_all, yt_all = load_battery_data_random(n_samples_source, n_samples_targets, time_series, shuffle_or_not = True, random_seed = random_seed)
-    Xs, ys, Xt, yt, Xt_all, yt_all, acc, Xt_true, yt_true, Xt_random, yt_random, Xt_all_domain, yt_all_domain = load_battery_data_split(n_samples_source, n_samples_targets, time_series, shuffle_or_not = True, random_seed = random_seed, train_set = 20)
+    Xs, ys, Xt, yt, Xt_all, yt_all, acc, Xt_true, yt_true, Xt_random, yt_random, Xt_all_domain, yt_all_domain, Xt_all_domain_mix, yt_all_domain_mix = load_battery_data_split(n_samples_source, n_samples_targets, time_series, shuffle_or_not = True, random_seed = random_seed, train_set = 20)
 
-    if sort_method == 'w_dis':
+    if sort_method == 'w_dis' or sort_method == 'mix':
+        if sort_method == 'mix':
+            Xt_all_domain = Xt_all_domain_mix
+            yt_all_domain = yt_all_domain_mix
+
         m = ot.dist(Xs, Xt_true[-1], metric='euclidean')
         m /= m.max()
         n1 = Xs.shape[0]
@@ -94,25 +98,34 @@ def test_cdot_methods(methods, time_reg_vector, n_samples_source, n_samples_targ
                 Xt = [x for _, x in sorted(zip(w1, Xt1), key=lambda x1: x1[0])]
                 yt = [x for _, x in sorted(zip(w1, yt1), key=lambda x1: x1[0])]
 
-        if if_sort == 0:
+            Xt.append(Xt_true[-1])
+            yt.append(yt_true[-1])
 
-            x_sample = []
-            y_sample = []
-            for i in range(t):
-                np.random.seed(1 * i)
-                rand = np.random.choice(len(Xt_all_domain), 1)
-                x_sample_per = np.array(Xt_all_domain[rand[0]])
-                y_sample_per = np.array(yt_all_domain[rand[0]])
-                
-                x_sample.append(x_sample_per)
-                y_sample.append(y_sample_per)
+        if if_sort == 0:
+            if sort_method == 'w_dis':
+                Xt = Xt_true
+                yt = yt_true
+            else:
+                rand = np.arange(len(Xt_all_domain))
+                np.random.seed(random_seed)
+                np.random.shuffle(rand)
+
+                x_sample = []
+                y_sample = []
+                for i in range(t):
+                    x_sample_per = np.array(Xt_all_domain[rand[i]])
+                    y_sample_per = np.array(yt_all_domain[rand[i]])
+                    
+                    x_sample.append(x_sample_per)
+                    y_sample.append(y_sample_per)
 
                 Xt = x_sample
                 yt = y_sample
 
-        Xt.append(Xt_true[-1])
-        yt.append(yt_true[-1])
-    
+                Xt.append(Xt_true[-1])
+                yt.append(yt_true[-1])
+            
+
     if sort_method == 'soc':
         Xt = Xt_true
         yt = yt_true
@@ -178,8 +191,9 @@ def test_cdot_methods(methods, time_reg_vector, n_samples_source, n_samples_targ
 if __name__ == '__main__':
     # sort_method = 'soc'
     # sort_method = 'clf'
-    sort_method = 'w_dis'
+    # sort_method = 'w_dis'
     # sort_method = 'random'
+    sort_method = 'mix'
     data = []
     for t in range(8):
         # # of target and intermediate domains
@@ -193,7 +207,7 @@ if __name__ == '__main__':
 
         for if_sort in sort_or_not:
             print("----------- sort or not: {} ------------".format(if_sort))
-            N_RUNS = 1
+            N_RUNS = 10
 
             # clf = KNeighborsClassifier(n_neighbors=1)
             # clf = ensemble.RandomForestRegressor(n_estimators=4)
@@ -216,7 +230,7 @@ if __name__ == '__main__':
 
             clf_acc = []
 
-            for sd in range(2):
+            for sd in range(100):
                 print("#epoch {}".format(sd))
                 np.random.seed(sd)
                 # time = np.random.randint(1, 10)
@@ -324,6 +338,6 @@ if __name__ == '__main__':
                     'var_direct': var_per_epoch_loss_direct, 'var_unorder': var_per_epoch_loss_unorder, 'var_order': var_per_epoch_loss_order})
 
     dataframe = pd.DataFrame(data)
-    dataframe.to_csv("soc_{}_only_sametarget_ssh_{}_2.csv".format(sort_method, target), index=False, sep=',')    
+    dataframe.to_csv("soc_{}_sametarget_ssh_{}.csv".format(sort_method, target), index=False, sep=',')    
 
         
