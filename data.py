@@ -276,9 +276,9 @@ def load_battery_data_split(n_samples_source = 67, n_samples_targets = 10, time_
         yt_all_domain.append(y)
 
         if idx > 0 and idx < len(time_all_list) - 1:
-            t_cnt = int(n_samples_targets * 0.6)
-            t_before = int(n_samples_targets * 0.2)
-            t_after = int(n_samples_targets * 0.2)
+            t_cnt = int(n_samples_targets * 0.8)
+            t_before = int(n_samples_targets * 0.1)
+            t_after = int(n_samples_targets * 0.1)
             rand1 = np.arange(Xt_true.shape[0])
             rand2 = np.arange(Xt_before.shape[0])
             rand3 = np.arange(xt_after.shape[0])
@@ -302,8 +302,8 @@ def load_battery_data_split(n_samples_source = 67, n_samples_targets = 10, time_
             yt_all_domain_mix.append(y)
         
         elif idx == 0:
-            t_cnt = int(n_samples_targets * 0.6)
-            t_after = int(n_samples_targets * 0.4)
+            t_cnt = int(n_samples_targets * 0.8)
+            t_after = int(n_samples_targets * 0.2)
             rand1 = np.arange(Xt_true.shape[0])
             rand2 = np.arange(xt_after.shape[0])
             
@@ -323,8 +323,8 @@ def load_battery_data_split(n_samples_source = 67, n_samples_targets = 10, time_
             yt_all_domain_mix.append(y)
         
         else:
-            t_cnt = int(n_samples_targets * 0.6)
-            t_before = int(n_samples_targets * 0.4)
+            t_cnt = int(n_samples_targets * 0.8)
+            t_before = int(n_samples_targets * 0.2)
             rand1 = np.arange(Xt_true.shape[0])
             rand2 = np.arange(Xt_before.shape[0])
 

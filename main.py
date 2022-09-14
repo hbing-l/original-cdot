@@ -338,6 +338,6 @@ if __name__ == '__main__':
                     'var_direct': var_per_epoch_loss_direct, 'var_unorder': var_per_epoch_loss_unorder, 'var_order': var_per_epoch_loss_order})
 
     dataframe = pd.DataFrame(data)
-    dataframe.to_csv("soc_{}_sametarget_pc_{}.csv".format(sort_method, target), index=False, sep=',')    
+    dataframe.to_csv("soc_{}_sametarget_ssh_{}_0.2.csv".format(sort_method, target), index=False, sep=',')    
 
         
