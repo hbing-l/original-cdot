@@ -415,6 +415,67 @@ def load_seq_two_moon_data(n_samples_source, n_samples_targets, time_length, noi
 
     return Xs, ys, Xt, yt, angles
 
+def load_seq_two_moon_data_test(n_samples_source, n_samples_targets, time_series, noise=.1):
+    Xs, ys = make_moons(n_samples_source, shuffle=True, noise=noise)
+
+    # Initialize target data
+    
+
+    Xt_all_domain = []
+    yt_all_domain = []
+    for i in range(9):
+        angle_deg = (i + 1) * 18
+        if angle_deg == time_series[-1]:
+            continue
+
+        angle = np.deg2rad(angle_deg)
+        X, y = make_moons(n_samples_targets, shuffle=True, noise=noise)
+        X = rotate_2d(X, angle)
+        Xt_all_domain.append(X)
+        yt_all_domain.append(y)
+
+
+    # Xt_val_np = np.array(Xt_val).reshape(9*100, Xt_val_np.shape[-1])
+    # yt_val_np = np.array(yt_val).reshape(9*100)
+    # angles_np = np.array(angles).reshape(9*100)
+
+    # knn = KNeighborsClassifier(n_neighbors=2) 
+    # knn.fit(Xt_val_np, angles_np)
+
+
+    Xt = []
+    yt = []
+    angles = []
+    for k in time_series:
+        angle = np.deg2rad(k)
+        X, y = make_moons(n_samples_targets, shuffle=True, noise=noise)
+        X = rotate_2d(X, angle)
+
+        Xt.append(X)
+        yt.append(y)
+        angles.append(np.rad2deg(angle))
+    
+    Xt_all_domain_np = np.array(Xt_all_domain).reshape(8*n_samples_targets, 2)
+    yt_all_domain_np = np.array(yt_all_domain).reshape(8*n_samples_targets)
+
+    Xt_random = []
+    yt_random = []
+    for i in time_series:
+        rand = np.arange(Xt_all_domain_np.shape[0])
+        np.random.shuffle(rand)
+        X = Xt_all_domain_np[rand[: n_samples_targets]]
+        y = yt_all_domain_np[rand[: n_samples_targets]]
+
+        Xt_random.append(X)
+        yt_random.append(y)
+    
+    Xt_random.pop()
+    yt_random.pop()
+    Xt_random.append(Xt[-1])
+    yt_random.append(yt[-1])
+
+    return Xs, ys, Xt, yt, angles, Xt_all_domain, yt_all_domain, Xt_random, yt_random
+
 
 def rotate_2d(X, theta):
     c, s = np.cos(theta), np.sin(theta)
