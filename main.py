@@ -230,7 +230,7 @@ if __name__ == '__main__':
 
             clf_acc = []
 
-            for sd in range(100):
+            for sd in range(2):
                 print("#epoch {}".format(sd))
                 np.random.seed(sd)
                 # time = np.random.randint(1, 10)
