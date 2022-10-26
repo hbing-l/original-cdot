@@ -76,7 +76,7 @@ def load_mnist_data(dir_path, n_sample_source = 1000, n_sample_targets = 50, n_s
     
 
 def load_battery_data(n_samples_source = 67, n_samples_targets = 10, time_length = 4, shuffle_or_not = False):
-    dir = '/Users/liuhanbing/Desktop/code/out_SOC_005-075_excel/'
+    dir = '/home/hanbingliu/out_SOC_005-075_excel/'
     s_val = pd.read_excel(dir + 'out-SOC-005.xlsx', engine='openpyxl').values
     s_cnt = n_samples_source if n_samples_source <= s_val.shape[0] else s_val.shape[0]
     Xs = s_val[: s_cnt, 2 : 23].astype(np.float64)
@@ -114,7 +114,7 @@ def load_battery_data(n_samples_source = 67, n_samples_targets = 10, time_length
     return Xs, ys, Xt, yt, Xt_all, yt_all
 
 def load_battery_data_random(n_samples_source = 67, n_samples_targets = 10, time_series = [], shuffle_or_not = True, random_seed = 0):
-    dir = '/Users/liuhanbing/Desktop/code/out_SOC_005-075_excel/'
+    dir = '/home/hanbingliu/out_SOC_005-075_excel/'
     s_val = pd.read_excel(dir + 'out-SOC-005.xlsx', engine='openpyxl').values
     s_cnt = n_samples_source if n_samples_source <= s_val.shape[0] else s_val.shape[0]
     Xs = s_val[: s_cnt, 2 : 23].astype(np.float64)
@@ -149,7 +149,7 @@ def load_battery_data_random(n_samples_source = 67, n_samples_targets = 10, time
     return Xs, ys, Xt, yt, Xt_all, yt_all
 
 def load_battery_data_split(n_samples_source = 67, n_samples_targets = 10, time_series = [], shuffle_or_not = True, random_seed = 1, train_set = 20):
-    dir = '/Users/liuhanbing/Desktop/code/out_SOC_005-075_excel/'
+    dir = '/home/hanbingliu/out_SOC_005-075_excel/'
     s_val = pd.read_excel(dir + 'out-SOC-005.xlsx', engine='openpyxl').values
     s_cnt = n_samples_source if n_samples_source <= s_val.shape[0] else s_val.shape[0]
     Xs = s_val[: s_cnt, 2 : 23].astype(np.float64)
@@ -475,6 +475,71 @@ def load_seq_two_moon_data_test(n_samples_source, n_samples_targets, time_series
     yt_random.append(yt[-1])
 
     return Xs, ys, Xt, yt, angles, Xt_all_domain, yt_all_domain, Xt_random, yt_random
+
+def load_seq_two_moon_data_test_1(n_samples_source, n_samples_targets, time_length, noise=.1):
+    Xs, ys = make_moons(n_samples_source, shuffle=True, noise=noise)
+
+    # Initialize target data
+    
+
+    Xt_all_domain = []
+    yt_all_domain = []
+    for i in range(8):
+        if i == time_length - 1:
+            continue
+
+        angle_deg = (i + 1) * 18
+    
+        angle = np.deg2rad(angle_deg)
+        X, y = make_moons(n_samples_targets, shuffle=True, noise=noise)
+        X = rotate_2d(X, angle)
+        Xt_all_domain.append(X)
+        yt_all_domain.append(y)
+
+
+    # Xt_val_np = np.array(Xt_val).reshape(9*100, Xt_val_np.shape[-1])
+    # yt_val_np = np.array(yt_val).reshape(9*100)
+    # angles_np = np.array(angles).reshape(9*100)
+
+    # knn = KNeighborsClassifier(n_neighbors=2) 
+    # knn.fit(Xt_val_np, angles_np)
+
+
+    Xt = []
+    yt = []
+    angles = []
+
+    for k in range(time_length):
+        angle = (k + 1) * 18
+        X, y = make_moons(n_samples_targets, shuffle=True, noise=noise)
+        X = rotate_2d(X, angle)
+
+        Xt.append(X)
+        yt.append(y)
+        angles.append(np.rad2deg(angle))
+
+    
+    Xt_all_domain_np = np.array(Xt_all_domain).reshape(7*n_samples_targets, 2)
+    yt_all_domain_np = np.array(yt_all_domain).reshape(7*n_samples_targets)
+
+    Xt_random = []
+    yt_random = []
+    for i in range(time_length):
+        rand = np.arange(Xt_all_domain_np.shape[0])
+        np.random.shuffle(rand)
+        X = Xt_all_domain_np[rand[: n_samples_targets]]
+        y = yt_all_domain_np[rand[: n_samples_targets]]
+
+        Xt_random.append(X)
+        yt_random.append(y)
+    
+    Xt_random.pop()
+    yt_random.pop()
+    Xt_random.append(Xt[-1])
+    yt_random.append(yt[-1])
+
+    return Xs, ys, Xt, yt, angles, Xt_all_domain, yt_all_domain, Xt_random, yt_random
+
 
 
 def rotate_2d(X, theta):
